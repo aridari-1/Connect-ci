@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
+/* Base Colors (Dark + Gold Theme) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0B0C10;
+  --foreground: #e5e7eb;
+  --gold: #D4AF37;
 }
 
 @theme inline {
@@ -12,15 +14,125 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Force dark mode */
+body {
+  background: var(--background) !important;
+  color: var(--foreground) !important;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ------------------------------ */
+/*        PREMIUM DARK THEME      */
+/* ------------------------------ */
+
+/* Dark container cards */
+.card-dark {
+  background: #13151A;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+}
+
+/* Gold text */
+.text-gold {
+  color: var(--gold);
+}
+
+/* Gold background */
+.bg-gold {
+  background: var(--gold);
+  color: black;
+}
+
+/* Premium gold button */
+.btn-gold {
+  background: var(--gold);
+  color: black;
+  font-weight: 600;
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+  transition: all 0.2s ease;
+}
+
+.btn-gold:hover {
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.8);
+}
+
+/* Dark button */
+.btn-dark {
+  background: #1A1C20;
+  color: #e5e7eb;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+/* Inputs */
+.input-dark {
+  background: #1A1C20;
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #e5e7eb;
+  border-radius: 14px;
+  padding: 12px 16px;
+}
+
+.input-dark::placeholder {
+  color: #9ca3af;
+}
+
+/* Premium header gradient (Black → Gold) */
+.header-dark {
+  background: linear-gradient(135deg, #0b0c10 10%, #1a1c20 50%, #D4AF37 130%);
+  color: white;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+
+/* Modern shadow glow */
+.shadow-glow {
+  box-shadow:
+    0 0 12px rgba(212, 175, 55, 0.12),
+    0 8px 25px rgba(0,0,0,0.7);
+}
+
+/* Status Badges (gold theme) */
+.badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.badge-open {
+  background: rgba(255, 187, 0, 0.15);
+  color: #FFBB00;
+}
+
+.badge-assigned {
+  background: rgba(0, 170, 255, 0.15);
+  color: #00AAFF;
+}
+
+.badge-completed {
+  background: rgba(212, 175, 55, 0.22);
+  color: var(--gold);
+}
+
+.badge-rejected {
+  background: rgba(255, 80, 80, 0.15);
+  color: #ff5050;
+}
+.custom-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #2d2d2d;
+  border-radius: 20px;
 }
