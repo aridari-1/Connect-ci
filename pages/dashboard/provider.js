@@ -12,23 +12,41 @@ export default function ProviderDashboard() {
   const [myApplications, setMyApplications] = useState([]);
   const [ratingsMap, setRatingsMap] = useState({});
   const [loading, setLoading] = useState(true);
+  const [checkingRole, setCheckingRole] = useState(true);
 
-  // Load user
   useEffect(() => {
     async function loadUser() {
       const { data } = await supabase.auth.getUser();
-      if (data?.user) setUser(data.user);
+
+      if (data?.user) {
+        setUser(data.user);
+
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .single();
+
+        if (prof?.role !== "provider") {
+          router.replace("/dashboard/customer");
+          return;
+        }
+      } else {
+        router.replace("/auth");
+        return;
+      }
+
+      setCheckingRole(false);
       setLoading(false);
     }
-    loadUser();
-  }, []);
 
-  // Load profile + requests + apps
+    loadUser();
+  }, [router]);
+
   useEffect(() => {
     if (!user) return;
 
     async function loadData() {
-      // Load profile
       const { data: profileData } = await supabase
         .from('profiles')
         .select('*')
@@ -36,7 +54,6 @@ export default function ProviderDashboard() {
         .single();
       setProfile(profileData);
 
-      // Load open requests
       const { data: requestsData } = await supabase
         .from('delivery_requests')
         .select('*')
@@ -45,30 +62,30 @@ export default function ProviderDashboard() {
         .order('created_at', { ascending: false });
       setOpenRequests(requestsData || []);
 
-      // Load applications
-      const { data: appsData } = await supabase
-        .from('delivery_applications')
-        .select(`
-          id,
-          status,
-          offer_price,
-          created_at,
-          request:request_id (
-            id,
-            pickup_location,
-            dropoff_location,
-            item_description,
-            budget,
-            status,
-            created_at
-          )
-        `)
+   const { data: appsData } = await supabase
+  .from('delivery_applications')
+  .select(`
+    id,
+    status,
+    offer_price,
+    created_at,
+    request:request_id (
+      id,
+      pickup_location,
+      dropoff_location,
+      item_description,
+      budget,
+      status,
+      customer_id,
+      created_at
+    )
+  `)
+
         .eq('provider_id', user.id)
         .order('created_at', { ascending: false });
 
       setMyApplications(appsData || []);
 
-      // Load ratings for ALL requests the provider completed
       const requestIds = (appsData || [])
         .map(a => a.request?.id)
         .filter(Boolean);
@@ -79,7 +96,6 @@ export default function ProviderDashboard() {
           .select('*')
           .in('request_id', requestIds);
 
-        // Convert to map for fast access
         const map = {};
         ratingsData?.forEach(r => {
           map[r.request_id] = r;
@@ -92,15 +108,16 @@ export default function ProviderDashboard() {
     loadData();
   }, [user]);
 
-  if (loading) return <p className="text-sm text-slate-500">Chargement...</p>;
+  if (loading || checkingRole)
+    return <p className="text-sm text-slate-500 px-4 pt-24">Chargement...</p>;
 
   if (!user) {
     return (
-      <div className="max-w-md mx-auto bg-[#13151A] p-6 rounded-xl border border-slate-700">
+      <div className="max-w-md mx-auto bg-[#13151A] p-6 rounded-xl border border-slate-700 mt-8 mb-24">
         <h2 className="text-xl font-semibold text-[#D4AF37]">Vous n'êtes pas connecté</h2>
         <button
           onClick={() => router.push('/auth')}
-          className="mt-4 bg-[#D4AF37] text-black px-4 py-2 rounded-xl"
+          className="mt-4 bg-[#D4AF37] text-black px-4 py-3 rounded-xl w-full"
         >
           Aller à la connexion
         </button>
@@ -108,53 +125,51 @@ export default function ProviderDashboard() {
     );
   }
 
-  if (profile && profile.role !== 'provider') {
-    return (
-      <div className="max-w-md mx-auto bg-[#13151A] p-6 border border-slate-700 rounded-xl">
-        <h2 className="text-xl font-semibold text-[#D4AF37]">Accès refusé</h2>
-        <p className="text-sm text-slate-400">Votre compte n'est pas livreur.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto px-4 pt-4 pb-28 space-y-8">
 
-      {/* HEADER */}
-      <header className="bg-[#13151A] p-5 rounded-2xl border border-slate-700 shadow">
-        <h1 className="text-2xl font-semibold text-[#D4AF37]">Tableau de bord Livreur</h1>
-        <p className="text-sm text-slate-400">Consultez les livraisons disponibles et suivez vos candidatures.</p>
+      <header className="bg-[#13151A] p-5 sm:p-6 rounded-2xl border border-slate-700 shadow">
+        <h1 className="text-xl sm:text-2xl font-semibold text-[#D4AF37]">
+          Tableau de bord Livreur
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          Consultez les livraisons disponibles et suivez vos candidatures.
+        </p>
       </header>
 
-      {/* AVAILABLE REQUESTS */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-[#D4AF37]">Livraisons disponibles</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-[#D4AF37]">
+          Livraisons disponibles
+        </h2>
 
         {openRequests.length === 0 && (
-          <p className="text-slate-400 text-sm">Aucune livraison disponible pour le moment.</p>
+          <p className="text-xs sm:text-sm text-slate-400">Aucune livraison disponible.</p>
         )}
 
-        {(openRequests || []).map(req => (
+        {openRequests.map(req => (
           <div
             key={req.id}
-            className="bg-[#13151A] border border-slate-700 rounded-2xl p-5 hover:border-[#D4AF37] transition-all"
+            className="bg-[#13151A] border border-slate-700 rounded-2xl p-4 sm:p-5 hover:border-[#D4AF37] transition-all"
           >
-            <div className="flex justify-between">
-              <div>
+            <div className="flex justify-between items-start gap-3">
+              <div className="flex-1">
                 <p className="text-sm font-semibold text-[#D4AF37]">
                   {req.pickup_location} → {req.dropoff_location}
                 </p>
-                <p className="text-xs text-slate-400">{req.item_description}</p>
-                <p className="text-[11px] text-slate-500">{new Date(req.created_at).toLocaleString()}</p>
+                <p className="text-xs text-slate-400 mt-1">{req.item_description}</p>
+                <p className="text-[10px] text-slate-500 mt-1">
+                  {new Date(req.created_at).toLocaleString()}
+                </p>
               </div>
 
               <div className="text-right">
-                <p className="text-sm font-semibold text-[#D4AF37]">
+                <p className="text-sm sm:text-base font-semibold text-[#D4AF37]">
                   {req.budget?.toLocaleString('fr-FR')} FCFA
                 </p>
                 <Link
                   href={`/requests/${req.id}`}
-                  className="inline-block mt-2 px-4 py-2 rounded-xl bg-[#D4AF37] text-black text-xs font-medium hover:bg-[#be9d31]"
+                  className="inline-block mt-2 px-3 py-2 rounded-xl bg-[#D4AF37] 
+                  text-black text-xs sm:text-sm font-medium hover:bg-[#be9d31]"
                 >
                   Voir & postuler
                 </Link>
@@ -164,12 +179,13 @@ export default function ProviderDashboard() {
         ))}
       </section>
 
-      {/* MY APPLICATIONS */}
       <section className="space-y-3 pb-10">
-        <h2 className="text-lg font-semibold text-[#D4AF37]">Mes candidatures</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-[#D4AF37]">
+          Mes candidatures
+        </h2>
 
         {myApplications.length === 0 && (
-          <p className="text-sm text-slate-400">Aucune candidature envoyée.</p>
+          <p className="text-xs sm:text-sm text-slate-400">Aucune candidature envoyée.</p>
         )}
 
         {myApplications.map((app) => {
@@ -178,19 +194,28 @@ export default function ProviderDashboard() {
           return (
             <div
               key={app.id}
-              className="bg-[#13151A] border border-slate-700 rounded-2xl p-5 hover:border-[#D4AF37] transition-all"
+              className="bg-[#13151A] border border-slate-700 rounded-2xl p-4 sm:p-5"
             >
-              <div className="flex justify-between">
-                <div>
+              <div className="flex justify-between items-start gap-3">
+                <div className="flex-1">
                   <p className="text-sm font-semibold text-[#D4AF37]">
                     {app.request?.pickup_location} → {app.request?.dropoff_location}
                   </p>
-                  <p className="text-xs text-slate-400">{app.request?.item_description}</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {app.request?.item_description}
+                  </p>
+                  {/* VIEW CUSTOMER PROFILE */}
+<p
+  className="text-xs text-[#D4AF37] underline mt-1 cursor-pointer"
+  onClick={() => router.push(`/profile/customer?id=${app.request?.customer_id}`)}
+>
+  Voir le profil du client
+</p>
+
                 </div>
 
-                {/* STATUS BADGE */}
                 <span
-                  className={`px-3 py-1 text-xs rounded-xl font-semibold ${
+                  className={`px-3 py-1 text-xs sm:text-sm rounded-xl font-semibold ${
                     app.request?.status === "completed"
                       ? "border border-emerald-500 text-emerald-500 bg-emerald-500/10"
                       : app.status === "accepted"
@@ -204,24 +229,19 @@ export default function ProviderDashboard() {
                 </span>
               </div>
 
-              {/* OFFER PRICE */}
-              <div className="text-xs text-slate-400 mt-2">
-                {app.offer_price && (
-                  <span className="font-semibold text-[#D4AF37]">
-                    Offre : {app.offer_price.toLocaleString('fr-FR')} FCFA
-                  </span>
-                )}
-              </div>
+              {app.offer_price && (
+                <p className="text-xs sm:text-sm text-[#D4AF37] mt-2">
+                  Offre : {app.offer_price.toLocaleString("fr-FR")} FCFA
+                </p>
+              )}
 
-              {/* OPEN LINK */}
               <Link
                 href={`/requests/${app.request?.id}`}
-                className="text-xs text-[#D4AF37] hover:underline block mt-1"
+                className="text-xs sm:text-sm text-[#D4AF37] hover:underline block mt-2"
               >
                 Ouvrir la demande
               </Link>
 
-              {/* ⭐ RATING DISPLAY */}
               {rating && (
                 <div className="mt-3 p-3 bg-[#0B0C10] border border-slate-700 rounded-xl">
                   <p className="text-xs text-slate-300 font-semibold">Note du client :</p>
@@ -229,9 +249,7 @@ export default function ProviderDashboard() {
                     {'★'.repeat(rating.rating)}{'☆'.repeat(5 - rating.rating)}
                   </p>
                   {rating.review && (
-                    <p className="text-xs text-slate-400 mt-1 italic">
-                      “{rating.review}”
-                    </p>
+                    <p className="text-xs text-slate-400 mt-1 italic">“{rating.review}”</p>
                   )}
                 </div>
               )}

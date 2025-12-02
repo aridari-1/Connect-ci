@@ -136,3 +136,40 @@ body {
   background: #2d2d2d;
   border-radius: 20px;
 }
+/* --- MOBILE OPTIMIZATION --- */
+
+/* Smooth scroll for iPhone + Android */
+html,
+body {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Disable tap highlight on mobile */
+a, button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Fixes text rendering on iPhone (makes it sharper) */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent layout moving when keyboard opens */
+@supports (-webkit-touch-callout: none) {
+  .fixed {
+    position: fixed;
+  }
+}
+
+/* Improve chat scroll smoothness */
+.chat-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Make buttons easier to tap on small phones */
+button, input, textarea {
+  font-size: 16px; /* Prevents iOS zoom on tap */
+}
