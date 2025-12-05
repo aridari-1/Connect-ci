@@ -44,76 +44,177 @@ export default function Home() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <p className="text-sm text-slate-500">
-          Chargement de l&apos;application...
+          Chargement de l'application...
         </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] flex flex-col items-center justify-start sm:justify-center pt-8 sm:pt-12 pb-8 sm:pb-10 px-4">
-      <div className="w-full max-w-3xl text-center space-y-6 sm:space-y-8">
-        {/* Titre */}
-        <h1 className="text-3xl sm:text-4xl font-bold text-[#D4AF37] mt-4 sm:mt-6">
-          Connect<span className="text-white">.ci</span>
-        </h1>
+    <div className="min-h-[calc(100vh-5rem)] flex flex-col items-center justify-start pt-10 pb-16 px-4">
+      <div className="w-full max-w-5xl space-y-16">
 
-        <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl mx-auto">
-          La plateforme qui connecte les{" "}
-          <span className="text-[#D4AF37]">clients</span> ayant besoin de
-          livraisons rapides avec des{" "}
-          <span className="text-[#D4AF37]">livreurs disponibles</span> à
-          Abidjan. Rapide. Simple. Fiable.
-        </p>
+        {/* ========================================================= */}
+        {/*                        HERO SECTION                      */}
+        {/* ========================================================= */}
+        <section
+          className="relative grid md:grid-cols-2 gap-10 items-center rounded-2xl overflow-hidden"
+          style={{
+            backgroundImage: "url('/hero-bg.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-black/60"></div>
 
-        {/* Boutons CTA */}
-        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mt-2 sm:mt-4">
-          <Link
-            href="/auth"
-            className="w-full sm:w-auto bg-[#D4AF37] text-black py-3 px-6 rounded-xl text-sm sm:text-base font-semibold hover:bg-[#caa12f] shadow-md active:scale-[0.98] transition-transform"
-          >
-            Se connecter
-          </Link>
+          {/* Left: headline + CTA */}
+          <div className="relative z-10 space-y-6 p-6 md:p-10">
+            {/* BIG HEADLINE */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#D4AF37] leading-tight">
+              Obtenez les services dont vous avez besoin avec Connect-ci.
+            </h1>
 
-          <Link
-            href="/auth?signup=true"
-            className="w-full sm:w-auto border border-[#D4AF37] text-[#D4AF37] py-3 px-6 rounded-xl text-sm sm:text-base font-semibold hover:bg-[#D4AF37] hover:text-black shadow-md active:scale-[0.98] transition-transform"
-          >
-            Créer un compte
-          </Link>
-        </div>
+            {/* CTA buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-2">
+              <Link
+                href="/auth?signup=true"
+                className="w-full sm:w-auto bg-[#D4AF37] text-black py-3 px-6 rounded-xl text-sm sm:text-base font-semibold hover:bg-[#caa12f] shadow-md active:scale-[0.98] transition-transform text-center"
+              >
+                S'inscrire
+              </Link>
 
-        {/* Illustration */}
-        <div className="mt-6 sm:mt-8 flex justify-center">
-          <img
-            src="/delivery-illustration.png"
-            alt="Livraison"
-            className="w-40 sm:w-56 md:w-64 opacity-80"
-          />
-        </div>
-
-        {/* Sections informatives */}
-        <div className="space-y-4 sm:space-y-6 mt-6 sm:mt-8">
-          <div className="bg-[#13151A] border border-slate-700 rounded-2xl p-4 sm:p-6 shadow-sm text-left sm:text-center">
-            <h3 className="text-base sm:text-lg font-semibold text-[#D4AF37] mb-2">
-              Pour les clients
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-300">
-              Publiez une demande, expliquez ce que vous voulez faire livrer,
-              recevez des candidatures de livreurs en quelques minutes.
-            </p>
+              <Link
+                href="/auth"
+                className="w-full sm:w-auto border border-[#D4AF37] text-[#D4AF37] py-3 px-6 rounded-xl text-sm sm:text-base font-semibold hover:bg-[#D4AF37] hover:text-black shadow-md active:scale-[0.98] transition-transform text-center"
+              >
+                Se connecter
+              </Link>
+            </div>
           </div>
 
-          <div className="bg-[#13151A] border border-slate-700 rounded-2xl p-4 sm:p-6 shadow-sm text-left sm:text-center">
-            <h3 className="text-base sm:text-lg font-semibold text-[#D4AF37] mb-2">
-              Pour les livreurs
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-300">
-              Parcourez les demandes disponibles, proposez un prix et acceptez
-              les tâches qui vous conviennent le mieux.
-            </p>
+          {/* Right column left empty intentionally */}
+          <div className="hidden md:block"></div>
+        </section>
+
+        {/* ========================================================= */}
+        {/*                  COMMENT ÇA MARCHE SECTION               */}
+        {/* ========================================================= */}
+        <section className="space-y-8">
+          <h2 className="text-xl sm:text-2xl font-semibold text-[#D4AF37] text-center">
+            Comment ça marche ?
+          </h2>
+
+          <div className="space-y-6">
+            {/* Étape 01 */}
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4 bg-[#13151A] border border-slate-700 rounded-2xl px-5 py-4 shadow-sm">
+              <div className="text-3xl sm:text-4xl font-bold text-[#D4AF37] sm:w-16">
+                01
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm sm:text-base font-semibold text-slate-100">
+                  Postez une demande
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-300">
+                  Indiquez votre point de départ, votre destination et ce que
+                  vous souhaitez faire livrer ou le service dont vous avez besoin.
+                </p>
+              </div>
+            </div>
+
+            {/* Étape 02 */}
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4 bg-[#13151A] border border-slate-700 rounded-2xl px-5 py-4 shadow-sm">
+              <div className="text-3xl sm:text-4xl font-bold text-[#D4AF37] sm:w-16">
+                02
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm sm:text-base font-semibold text-slate-100">
+                  Recevez des propositions
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-300">
+                  Les prestataires proches vous envoient leurs offres et messages
+                  directement depuis Connect-ci.
+                </p>
+              </div>
+            </div>
+
+            {/* Étape 03 */}
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4 bg-[#13151A] border border-slate-700 rounded-2xl px-5 py-4 shadow-sm">
+              <div className="text-3xl sm:text-4xl font-bold text-[#D4AF37] sm:w-16">
+                03
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm sm:text-base font-semibold text-slate-100">
+                  Choisissez votre prestataire
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-300">
+                  Comparez les profils, les notes et les prix pour sélectionner
+                  la personne qui correspond le mieux à votre besoin.
+                </p>
+              </div>
+            </div>
+
+            {/* Étape 04 */}
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4 bg-[#13151A] border border-slate-700 rounded-2xl px-5 py-4 shadow-sm">
+              <div className="text-3xl sm:text-4xl font-bold text-[#D4AF37] sm:w-16">
+                04
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm sm:text-base font-semibold text-slate-100">
+                  Suivez et finalisez
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-300">
+                  Discutez via le chat intégré, suivez l'avancement de la prestation
+                  et notez le service une fois terminé.
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
+
+        {/* ========================================================= */}
+        {/*                    NOS AVANTAGES SECTION                  */}
+        {/* ========================================================= */}
+        <section className="space-y-8">
+          <h2 className="text-xl sm:text-2xl font-semibold text-[#D4AF37] text-center">
+            Nos avantages
+          </h2>
+
+          <div className="grid gap-4 md:grid-cols-3">
+
+            {/* Avantage 1 */}
+            <div className="bg-[#13151A] border border-slate-700 rounded-2xl p-6 shadow-md flex flex-col items-center text-center">
+              <h3 className="text-sm sm:text-base font-semibold text-[#D4AF37] mb-2">
+                À votre service
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300">
+                Notre priorité est de vous accompagner dans vos besoins du quotidien, avec proximité et bienveillance.
+              </p>
+            </div>
+
+            {/* Avantage 2 */}
+            <div className="bg-[#13151A] border border-slate-700 rounded-2xl p-6 shadow-md flex flex-col items-center text-center">
+              <h3 className="text-sm sm:text-base font-semibold text-[#D4AF37] mb-2">
+                Sécurité
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300">
+                Profils, historiques et notes vous aident à choisir des prestataires de confiance.
+              </p>
+            </div>
+
+            {/* Avantage 3 */}
+            <div className="bg-[#13151A] border border-slate-700 rounded-2xl p-6 shadow-md flex flex-col items-center text-center">
+              <h3 className="text-sm sm:text-base font-semibold text-[#D4AF37] mb-2">
+                Simplicité
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300">
+                Une interface claire, moderne et agréable à utiliser, pensée pour vous.
+              </p>
+            </div>
+
+          </div>
+        </section>
+
       </div>
     </div>
   );
