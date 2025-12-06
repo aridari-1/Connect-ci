@@ -66,7 +66,7 @@ export default function ProviderProfile() {
     ? ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
     : 0;
 
-  // ⭐ Build star string for visual style
+  // ⭐ Build star string
   function renderStars(value) {
     const full = Math.floor(value);
     const half = value % 1 >= 0.5;
@@ -79,6 +79,12 @@ export default function ProviderProfile() {
         {"☆".repeat(empty)}
       </>
     );
+  }
+
+  // ⭐ LOGOUT
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.replace("/");
   }
 
   return (
@@ -102,7 +108,7 @@ export default function ProviderProfile() {
         </div>
       </div>
 
-      {/* ⭐ NEW: RATING DISPLAY */}
+      {/* ⭐ RATING DISPLAY */}
       <div className="bg-[#0B0C10] p-4 rounded-xl border border-slate-700 text-center">
         {totalRatings === 0 ? (
           <p className="text-slate-400 text-sm">Aucune note pour le moment</p>
@@ -147,6 +153,24 @@ export default function ProviderProfile() {
           {profile.bio || "Ce livreur n’a pas encore rédigé de bio."}
         </p>
       </div>
+
+      {/* ⭐ EDIT PROFILE BUTTON */}
+      <button
+        onClick={() => router.push(`/profile/edit?id=${id}`)}
+        className="w-full bg-[#0B0C10] border border-slate-700 text-[#D4AF37] py-3 rounded-xl
+        text-sm sm:text-base font-semibold hover:bg-[#1b1d22] transition"
+      >
+        Éditer le profil
+      </button>
+
+      {/* ⭐ LOGOUT BUTTON */}
+      <button
+        onClick={handleLogout}
+        className="w-full bg-red-600 text-white py-3 rounded-xl text-sm sm:text-base 
+        font-semibold hover:bg-red-700 transition"
+      >
+        Déconnexion
+      </button>
 
       {/* BACK BUTTON */}
       <button

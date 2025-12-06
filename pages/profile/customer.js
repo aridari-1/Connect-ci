@@ -60,14 +60,13 @@ export default function CustomerProfile() {
     );
   }
 
-  // ⭐ Compute dynamic average rating
+  // ⭐ Compute rating stats
   const totalRatings = ratings.length;
   const avgRating =
     totalRatings > 0
       ? ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
       : 0;
 
-  // ⭐ Render stars visually
   function renderStars(value) {
     const full = Math.floor(value);
     const half = value % 1 >= 0.5;
@@ -80,6 +79,12 @@ export default function CustomerProfile() {
         {"☆".repeat(empty)}
       </>
     );
+  }
+
+  // ⭐ LOGOUT
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.replace("/");
   }
 
   return (
@@ -101,15 +106,13 @@ export default function CustomerProfile() {
         </div>
       </div>
 
-      {/* ⭐ NEW: RATING BLOCK */}
+      {/* ⭐ RATING */}
       <div className="bg-[#0B0C10] p-4 rounded-xl border border-slate-700 text-center">
         {totalRatings === 0 ? (
           <p className="text-slate-400 text-sm">Aucune note pour le moment</p>
         ) : (
           <div>
-            <p className="text-xl text-[#D4AF37]">
-              {renderStars(avgRating)}
-            </p>
+            <p className="text-xl text-[#D4AF37]">{renderStars(avgRating)}</p>
             <p className="text-sm text-slate-300 mt-1">
               {avgRating.toFixed(1)} — {totalRatings} avis
             </p>
@@ -146,6 +149,24 @@ export default function CustomerProfile() {
           {profile.bio || "Ce client n’a pas encore rédigé de bio."}
         </p>
       </div>
+
+      {/* ⭐ EDIT PROFILE */}
+      <button
+        onClick={() => router.push(`/profile/edit?id=${id}`)}
+        className="w-full bg-[#0B0C10] border border-slate-700 text-[#D4AF37] py-3 rounded-xl
+        text-sm sm:text-base font-semibold hover:bg-[#1b1d22] transition"
+      >
+        Éditer le profil
+      </button>
+
+      {/* ⭐ LOGOUT */}
+      <button
+        onClick={handleLogout}
+        className="w-full bg-red-600 text-white py-3 rounded-xl text-sm sm:text-base 
+        font-semibold hover:bg-red-700 transition"
+      >
+        Déconnexion
+      </button>
 
       {/* BACK */}
       <button
