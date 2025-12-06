@@ -86,26 +86,13 @@ export default function Home() {
 
   return (
     <div
-  className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-black"
-  style={{
-    backgroundImage: "url('/hero-bg.png')",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-  }}
->
-  <style jsx>{`
-  @media (max-width: 768px) {
-    div[style*="hero-bg.png"] {
-      background-size: contain !important;
-      background-position: top !important;
-      background-repeat: no-repeat !important;
-      background-color: black !important;
-    }
-  }
-`}</style>
-
-
-    
+      className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-black"
+      style={{
+        backgroundImage: "url('/hero-bg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       {/* Global dark overlay for readability */}
       <div className="absolute inset-0 bg-black/70" />
 
@@ -220,22 +207,34 @@ export default function Home() {
               </button>
             </div>
           </div>
-
-          {/* Simple keyframe for slide-up (kept local) */}
-          <style jsx>{`
-            @keyframes slideUp {
-              from {
-                transform: translateY(100%);
-                opacity: 0;
-              }
-              to {
-                transform: translateY(0);
-                opacity: 1;
-              }
-            }
-          `}</style>
         </div>
       )}
+
+      {/* ========================================================= */}
+      {/*      GLOBAL ANIMATION + MOBILE BACKGROUND FIX             */}
+      {/* ========================================================= */}
+      <style jsx global>{`
+        @keyframes slideUp {
+          from {
+            transform: translateY(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+
+        /* MOBILE FIX → show full background image */
+        @media (max-width: 768px) {
+          body div[style*="hero-bg.png"] {
+            background-size: contain !important;
+            background-repeat: no-repeat !important;
+            background-position: top !important;
+            background-color: black !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
