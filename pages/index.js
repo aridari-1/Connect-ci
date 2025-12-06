@@ -86,13 +86,26 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen relative flex items-center justify-center px-4 py-10"
-      style={{
-        backgroundImage: "url('/hero-bg.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
+  className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-black"
+  style={{
+    backgroundImage: "url('/hero-bg.png')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  }}
+>
+  <style jsx>{`
+  @media (max-width: 768px) {
+    div[style*="hero-bg.png"] {
+      background-size: contain !important;
+      background-position: top !important;
+      background-repeat: no-repeat !important;
+      background-color: black !important;
+    }
+  }
+`}</style>
+
+
+    
       {/* Global dark overlay for readability */}
       <div className="absolute inset-0 bg-black/70" />
 
