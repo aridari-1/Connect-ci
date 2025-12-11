@@ -10,9 +10,17 @@ function parseDeadline(dateStr) {
   return isNaN(d.getTime()) ? null : d;
 }
 
+// Public-view participation messages
+function getPublicParticipationMessage(count) {
+  if (count === 0) return "Soyez le premier à participer !";
+  if (count < 3) return "Quelques personnes ont déjà contribué.";
+  if (count < 7) return "La cagnotte commence à attirer du monde.";
+  return "Beaucoup d'intérêt autour de cette cagnotte.";
+}
+
 export default function CagnotteDetails() {
   const router = useRouter();
-  const { id } = router.query;
+  const { id, token } = router.query;
 
   const [cagnotte, setCagnotte] = useState(null);
   const [participants, setParticipants] = useState([]);
@@ -22,9 +30,6 @@ export default function CagnotteDetails() {
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
 
-  // -----------------------------------------------------------
-  // LOAD USER + CAGNOTTE + PARTICIPANTS
-  // -----------------------------------------------------------
   useEffect(() => {
     if (!id) return;
 
@@ -32,18 +37,30 @@ export default function CagnotteDetails() {
       setLoading(true);
 
       const { data: auth } = await supabase.auth.getUser();
-      setUser(auth.user || null);
+      const currentUser = auth.user || null;
+      setUser(currentUser);
 
-      const { data: cag } = await supabase
+      const { data: cag, error } = await supabase
         .from("cagnottes")
         .select("*")
         .eq("id", id)
         .single();
 
-      if (!cag) {
+      if (error || !cag) {
         setMsg("Erreur : cagnotte introuvable.");
         setLoading(false);
         return;
+      }
+
+      // PRIVATE ACCESS CONTROL
+      const isCreator = currentUser && currentUser.id === cag.user_id;
+
+      if (!cag.is_public && !isCreator) {
+        if (!token || token !== cag.access_token) {
+          setMsg("Cette cagnotte est privée. Accès refusé.");
+          setLoading(false);
+          return;
+        }
       }
 
       setCagnotte(cag);
@@ -56,13 +73,14 @@ export default function CagnotteDetails() {
 
       setParticipants(parts || []);
 
-      // Load winner profile if exists
+      // Load winner profile
       if (cag.winner_id) {
         const { data: win } = await supabase
           .from("profiles")
           .select("full_name, id")
           .eq("id", cag.winner_id)
           .single();
+
         setWinnerProfile(win || null);
       }
 
@@ -70,11 +88,9 @@ export default function CagnotteDetails() {
     }
 
     loadAll();
-  }, [id]);
+  }, [id, token]);
 
-  // -----------------------------------------------------------
-  // LIVE COUNTDOWN
-  // -----------------------------------------------------------
+  // COUNTDOWN CLOCK
   useEffect(() => {
     if (!cagnotte) return;
 
@@ -103,7 +119,7 @@ export default function CagnotteDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-slate-300">
+      <div className="min-h-screen flex items-center justify-center text-slate-300 bg-[#0B0C10]">
         Chargement...
       </div>
     );
@@ -111,24 +127,27 @@ export default function CagnotteDetails() {
 
   if (!cagnotte) {
     return (
-      <div className="min-h-screen bg-black text-red-400 pt-10 text-center">
-        Erreur : Cagnotte introuvable.
+      <div className="min-h-screen bg-[#0B0C10] text-red-400 pt-10 text-center">
+        {msg || "Erreur : Cagnotte introuvable."}
       </div>
     );
   }
 
   const deadline = parseDeadline(cagnotte.deadline);
-  const deadlinePassed = deadline <= new Date();
+  const deadlinePassed = deadline ? deadline <= new Date() : false;
   const isCreator = user?.id === cagnotte.user_id;
   const isCompleted = cagnotte.status === "completed";
+  const isPersonal = cagnotte.usage_type === "personal";
+  const isCompetition = cagnotte.usage_type === "competition";
 
-  // -----------------------------------------------------------
-  // CONTRIBUTE
-  // -----------------------------------------------------------
   async function contribute() {
-    if (deadlinePassed || isCompleted) {
-      setMsg("La cagnotte est fermée.");
-      return;
+    if (!user) return setMsg("Vous devez être connecté pour contribuer.");
+    if (deadlinePassed || isCompleted) return setMsg("La cagnotte est fermée.");
+
+    if (isPersonal && isCreator) {
+      return setMsg(
+        "Vous êtes le bénéficiaire de cette cagnotte, vous ne pouvez pas y contribuer."
+      );
     }
 
     const { error } = await supabase.from("cagnottes_participants").insert([
@@ -140,42 +159,30 @@ export default function CagnotteDetails() {
     ]);
 
     if (error) {
-      setMsg("Erreur : Impossible de contribuer.");
+      setMsg("Erreur : impossible de contribuer.");
+      console.error(error);
     } else {
       setMsg("Contribution enregistrée !");
-
       const { data } = await supabase
         .from("cagnottes_participants")
         .select("*")
         .eq("cagnotte_id", cagnotte.id);
-
-      setParticipants(data);
+      setParticipants(data || []);
     }
   }
 
-  // -----------------------------------------------------------
-  // SELECT WINNER
-  // -----------------------------------------------------------
   async function selectWinner() {
-    if (!isCreator) {
-      setMsg("Seul le créateur peut sélectionner un gagnant.");
-      return;
-    }
-    if (!deadlinePassed) {
-      setMsg("La cagnotte n'est pas encore terminée.");
-      return;
-    }
-    if (isCompleted) {
-      setMsg("Un gagnant a déjà été sélectionné.");
-      return;
-    }
-    if (participants.length === 0) {
-      setMsg("Aucun participant !");
-      return;
-    }
+    if (!isCreator) return setMsg("Seul le créateur peut sélectionner un gagnant.");
+    if (!isCompetition)
+      return setMsg(
+        "Cette cagnotte est personnelle. Aucun gagnant aléatoire ne peut être sélectionné."
+      );
+    if (!deadlinePassed)
+      return setMsg("La cagnotte n'est pas encore terminée.");
+    if (isCompleted) return setMsg("Un gagnant a déjà été sélectionné.");
+    if (participants.length === 0) return setMsg("Aucun participant.");
 
-    const winner =
-      participants[Math.floor(Math.random() * participants.length)];
+    const winner = participants[Math.floor(Math.random() * participants.length)];
 
     const { data, error } = await supabase
       .from("cagnottes")
@@ -184,29 +191,71 @@ export default function CagnotteDetails() {
         status: "completed",
       })
       .eq("id", cagnotte.id)
-      .select("*")
       .single();
 
-    if (error) {
-      setMsg("Erreur lors de la sélection du gagnant.");
-    } else {
-      setMsg("🎉 Gagnant sélectionné !");
+    if (error) return setMsg("Erreur lors de la sélection.");
 
-      // Load winner profile
-      const { data: winProfile } = await supabase
-        .from("profiles")
-        .select("full_name, id")
-        .eq("id", winner.user_id)
-        .single();
+    setCagnotte(data);
 
-      setWinnerProfile(winProfile);
-      setCagnotte(data);
-    }
+    const { data: winProfile } = await supabase
+      .from("profiles")
+      .select("full_name, id")
+      .eq("id", winner.user_id)
+      .single();
+
+    setWinnerProfile(winProfile || null);
+    setMsg("🎉 Gagnant sélectionné !");
   }
 
-  // -----------------------------------------------------------
-  // BADGE COMPONENT
-  // -----------------------------------------------------------
+  async function collectCagnotte() {
+    if (!isCreator)
+      return setMsg("Seul le créateur peut récupérer cette cagnotte.");
+    if (!isPersonal)
+      return setMsg(
+        "Cette cagnotte est une cagnotte compétition. Utilisez le tirage au sort."
+      );
+    if (!deadlinePassed)
+      return setMsg("La cagnotte n'est pas encore terminée.");
+    if (isCompleted) return setMsg("Cette cagnotte est déjà clôturée.");
+
+    const { data, error } = await supabase
+      .from("cagnottes")
+      .update({
+        status: "completed",
+        winner_id: cagnotte.user_id, // le créateur est le bénéficiaire
+      })
+      .eq("id", cagnotte.id)
+      .single();
+
+    if (error) return setMsg("Erreur lors de la clôture de la cagnotte.");
+
+    setCagnotte(data);
+
+    const { data: winProfile } = await supabase
+      .from("profiles")
+      .select("full_name, id")
+      .eq("id", cagnotte.user_id)
+      .single();
+
+    setWinnerProfile(winProfile || null);
+    setMsg("La cagnotte a été clôturée pour le créateur.");
+  }
+
+  async function makePublic() {
+    if (!isCreator) return;
+
+    const { data, error } = await supabase
+      .from("cagnottes")
+      .update({ is_public: true })
+      .eq("id", cagnotte.id)
+      .single();
+
+    if (error) return setMsg("Erreur lors du passage en public.");
+
+    setCagnotte(data);
+    setMsg("Cette cagnotte est maintenant publique.");
+  }
+
   function StatusBadge() {
     if (isCompleted)
       return (
@@ -218,7 +267,7 @@ export default function CagnotteDetails() {
     if (deadlinePassed)
       return (
         <span className="bg-yellow-700/40 text-yellow-300 px-3 py-1 rounded-lg text-sm font-semibold">
-          Fermée — En attente du gagnant
+          Fermée — En attente du gagnant ou de la clôture
         </span>
       );
 
@@ -229,65 +278,132 @@ export default function CagnotteDetails() {
     );
   }
 
-  // -----------------------------------------------------------
-  // UI RENDER
-  // -----------------------------------------------------------
   return (
     <div className="min-h-screen bg-[#0B0C10] text-white px-4 py-6">
-      
-      {/* TITLE */}
+      {/* HEADER */}
       <h1 className="text-3xl font-bold text-[#D4AF37]">{cagnotte.title}</h1>
       <p className="text-sm text-gray-300">{cagnotte.purpose}</p>
 
-      {/* DEADLINE */}
       <p className="text-xs mt-2 text-gray-400">
         Clôture automatique : {deadline?.toLocaleString()}
       </p>
 
-      {/* COUNTDOWN */}
       <p className="text-md font-semibold mt-2 text-[#D4AF37]">
         {countdown}
       </p>
 
-      {/* STATUS BADGE */}
+      {/* STATUS */}
       <div className="mt-3">
         <StatusBadge />
       </div>
 
-      {/* WINNER */}
+      {/* USAGE TYPE BANNER */}
+      <div className="mt-4 bg-[#13151A] border border-[#D4AF37]/40 rounded-lg p-3 text-xs">
+        {isPersonal && (
+          <>
+            <p className="text-[#D4AF37] font-semibold">
+              ⚠️ Cagnotte personnelle
+            </p>
+            <p className="text-gray-300 mt-1">
+              Cette cagnotte est destinée directement au créateur. En
+              contribuant, vous l&apos;aidez à financer son objectif (concert,
+              vêtements, livres, etc.).
+            </p>
+            {isCreator && (
+              <p className="text-emerald-300 mt-1">
+                Vous êtes le bénéficiaire de cette cagnotte.
+              </p>
+            )}
+          </>
+        )}
+
+        {isCompetition && (
+          <>
+            <p className="text-[#D4AF37] font-semibold">
+              🎯 Cagnotte compétition / tirage au sort
+            </p>
+            <p className="text-gray-300 mt-1">
+              Cette cagnotte fonctionne comme un tirage au sort. Un participant
+              sera sélectionné comme gagnant à la fin.
+            </p>
+          </>
+        )}
+      </div>
+
+      {/* WINNER BOX */}
       {winnerProfile && (
         <div className="mt-6 bg-[#13151A] border border-[#D4AF37]/60 p-4 rounded-xl">
           <h2 className="text-xl font-bold text-[#D4AF37]">🎉 Gagnant</h2>
           <p className="text-gray-200 mt-2">
-            <span className="font-semibold text-[#D4AF37]">Nom :</span> {winnerProfile.full_name}
+            <span className="font-semibold text-[#D4AF37]">Nom :</span>{" "}
+            {winnerProfile.full_name}
           </p>
           <p className="text-gray-400 text-sm">
-            <span className="font-semibold text-[#D4AF37]">ID :</span> {winnerProfile.id}
+            <span className="font-semibold text-[#D4AF37]">ID :</span>{" "}
+            {winnerProfile.id}
           </p>
         </div>
       )}
 
-      {/* MESSAGE */}
-      {msg && <p className="mt-3 text-center text-red-400">{msg}</p>}
+      {/* SHARE BUTTON */}
+      <button
+        onClick={async () => {
+          const baseUrl =
+            typeof window !== "undefined"
+              ? window.location.origin
+              : "https://connect-ci.app";
 
-      {/* PARTICIPANTS */}
+          const shareLink = cagnotte.is_public
+            ? `${baseUrl}/requests/cagnotte/${cagnotte.id}`
+            : `${baseUrl}/requests/cagnotte/${cagnotte.id}?token=${cagnotte.access_token}`;
+
+          try {
+            await navigator.clipboard.writeText(shareLink);
+            setMsg("Lien copié dans le presse-papier !");
+          } catch {
+            setMsg("Impossible de copier le lien.");
+          }
+        }}
+        className="w-full mt-4 bg-[#D4AF37] hover:bg-[#caa12f] text-black font-semibold py-2 rounded-lg"
+      >
+        📤 Partager la cagnotte
+      </button>
+
+      {/* MESSAGE */}
+      {msg && (
+        <p className="mt-3 text-center text-[#D4AF37] font-semibold bg-[#13151A] border border-[#D4AF37]/40 px-3 py-2 rounded-lg">
+          {msg}
+        </p>
+      )}
+
+      {/* PARTICIPANTS SECTION */}
       <div className="mt-6 bg-[#13151A] border border-gray-700 rounded-xl p-4">
         <h2 className="text-lg font-bold text-[#D4AF37]">Participants</h2>
 
-        {participants.length === 0 ? (
-          <p className="text-gray-400 text-sm mt-2">Aucun participant.</p>
-        ) : (
-          <ul className="mt-3 space-y-1 text-sm text-gray-300">
-            {participants.map((p) => (
-              <li key={p.id}>
-                • {p.user_id} – {p.contribution_amount} FCFA
-              </li>
-            ))}
-          </ul>
+        {!isCreator && (
+          <p className="text-gray-400 text-sm mt-2 italic">
+            {getPublicParticipationMessage(participants.length)}
+          </p>
+        )}
+
+        {isCreator && (
+          <>
+            <p className="text-[#D4AF37] font-semibold mt-2">
+              Nombre total de contributions : {participants.length}
+            </p>
+
+            <ul className="mt-3 space-y-1 text-sm text-gray-300">
+              {participants.map((p) => (
+                <li key={p.id}>
+                  • {p.user_id} – {p.contribution_amount} FCFA
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
 
-      {/* CONTRIBUTE BUTTON */}
+      {/* CONTRIBUTE */}
       {!deadlinePassed && !isCompleted && user && (
         <button
           onClick={contribute}
@@ -297,13 +413,41 @@ export default function CagnotteDetails() {
         </button>
       )}
 
-      {/* SELECT WINNER */}
-      {isCreator && deadlinePassed && !isCompleted && (
+      {/* SELECT WINNER (competition only) */}
+      {isCreator &&
+        isCompetition &&
+        deadlinePassed &&
+        !isCompleted &&
+        participants.length > 0 && (
+          <button
+            onClick={selectWinner}
+            className="w-full mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-lg"
+          >
+            Sélectionner un gagnant
+          </button>
+        )}
+
+      {/* COLLECT CAGNOTTE (personal only) */}
+      {isCreator &&
+        isPersonal &&
+        deadlinePassed &&
+        !isCompleted &&
+        participants.length > 0 && (
+          <button
+            onClick={collectCagnotte}
+            className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg"
+          >
+            Récupérer la cagnotte
+          </button>
+        )}
+
+      {/* MAKE PUBLIC */}
+      {isCreator && !cagnotte.is_public && (
         <button
-          onClick={selectWinner}
-          className="w-full mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-lg"
+          onClick={makePublic}
+          className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg"
         >
-          Sélectionner un gagnant
+          Rendre publique
         </button>
       )}
     </div>
