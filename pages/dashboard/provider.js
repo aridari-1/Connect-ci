@@ -105,6 +105,26 @@ export default function ProviderServiceChooser() {
             </div>
           </div>
         </Link>
+
+        {/* CAGNOTTE */}
+        <Link
+          href="/dashboard/provider/cagnottes"
+          className="bg-[#13151A] border border-slate-700 rounded-2xl p-6 flex flex-col gap-3 hover:border-[#D4AF37] transition-all shadow-md"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full border border-[#D4AF37] flex items-center justify-center text-lg">
+              💰
+            </div>
+            <div>
+              <h3 className="text-[#D4AF37] text-lg font-semibold">
+                Créer une Cagnotte
+              </h3>
+              <p className="text-xs text-slate-400">
+                Créez des cagnottes pour financer des projets solidaires.
+              </p>
+            </div>
+          </div>
+        </Link>
       </div>
     </div>
   );
