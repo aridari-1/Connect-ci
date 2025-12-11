@@ -1,190 +1,194 @@
-import { useState } from "react";
+// pages/auth.js
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function AuthPage() {
   const router = useRouter();
-  const [mode, setMode] = useState("login"); // 'login' ou 'signup'
+  const { redirect } = router.query;
+
+  const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState("customer");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [msg, setMsg] = useState("");
 
-  async function handleSubmit(e) {
+  useEffect(() => {
+    async function checkUser() {
+      const { data } = await supabase.auth.getUser();
+      const user = data.user;
+
+      if (user) {
+        const target = redirect ? decodeURIComponent(redirect) : "/dashboard/customer";
+        router.replace(target);
+      }
+    }
+    checkUser();
+  }, [redirect, router]);
+
+  function computeRedirect(role) {
+    if (redirect) return decodeURIComponent(redirect);
+    return role === "provider" ? "/dashboard/provider" : "/dashboard/customer";
+  }
+
+  async function handleLogin(e) {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
+    setMsg("");
 
-    try {
-      if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-        const user = data.user;
-        if (user) {
-          const { error: profileError } = await supabase
-            .from("profiles")
-            .insert({
-              id: user.id,
-              full_name: fullName || null,
-              role,
-              city: "Abidjan",
-            });
-          if (profileError) throw profileError;
-        }
-
-        setMessage("Compte créé avec succès ! Vous pouvez maintenant vous connecter.");
-        setMode("login");
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-
-        const loggedUser = data.user;
-        if (loggedUser) {
-          const { data: prof } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", loggedUser.id)
-            .single();
-
-          if (prof?.role === "provider") {
-            router.push("/dashboard/provider");
-          } else {
-            router.push("/dashboard/customer");
-          }
-        } else {
-          router.push("/");
-        }
-      }
-    } catch (err) {
-      setMessage(err.message || "Une erreur s'est produite");
-    } finally {
+    if (error) {
+      setMsg("Erreur de connexion : " + error.message);
       setLoading(false);
+      return;
     }
+
+    const user = data.user;
+
+    let roleFromProfile = "customer";
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      if (profile?.role) roleFromProfile = profile.role;
+    }
+
+    const target = computeRedirect(roleFromProfile);
+    router.replace(target);
+  }
+
+  async function handleSignup(e) {
+    e.preventDefault();
+    setLoading(true);
+    setMsg("");
+
+    const { data, error } = await supabase.auth.signUp({ email, password });
+
+    if (error) {
+      setMsg("Erreur : " + error.message);
+      setLoading(false);
+      return;
+    }
+
+    const user = data.user;
+
+    if (!user) {
+      setMsg("Vérifiez votre email pour continuer.");
+      setLoading(false);
+      return;
+    }
+
+    await supabase.from("profiles").upsert(
+      {
+        id: user.id,
+        email: user.email,
+        full_name: fullName || user.email,
+        role,
+      },
+      { onConflict: "id" }
+    );
+
+    const target = computeRedirect(role);
+    router.replace(target);
   }
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] flex items-start sm:items-center justify-center px-4 pt-8 pb-20">
-      <div className="w-full max-w-md bg-[#13151A] border border-slate-700 rounded-2xl shadow-sm p-6 sm:p-8">
+    <div className="min-h-screen bg-[#0B0C10] flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-[#13151A] border border-slate-700 rounded-2xl p-6">
+        <h1 className="text-2xl font-bold text-center text-[#D4AF37] mb-2">
+          {mode === "login" ? "Connexion" : "Inscription"}
+        </h1>
 
-        {/* Onglets */}
-        <div className="flex gap-2 mb-6">
+        {/* TABS */}
+        <div className="flex mb-4 border border-slate-700 rounded-xl overflow-hidden">
           <button
-            type="button"
+            className={`flex-1 py-2 text-sm font-semibold ${
+              mode === "login" ? "bg-[#D4AF37] text-black" : "text-slate-300"
+            }`}
             onClick={() => setMode("login")}
-            className={`flex-1 py-2 rounded-xl text-sm font-medium transition ${
-              mode === "login"
-                ? "bg-[#D4AF37] text-black"
-                : "bg-[#2e2e2e] text-slate-400"
-            }`}
           >
-            Connexion
+            Se connecter
           </button>
-
           <button
-            type="button"
-            onClick={() => setMode("signup")}
-            className={`flex-1 py-2 rounded-xl text-sm font-medium transition ${
-              mode === "signup"
-                ? "bg-[#D4AF37] text-black"
-                : "bg-[#2e2e2e] text-slate-400"
+            className={`flex-1 py-2 text-sm font-semibold ${
+              mode === "signup" ? "bg-[#D4AF37] text-black" : "text-slate-300"
             }`}
+            onClick={() => setMode("signup")}
           >
-            Inscription
+            Créer un compte
           </button>
         </div>
 
-        {/* Titre */}
-        <h2 className="text-xl sm:text-2xl font-semibold mb-5 text-[#D4AF37] text-center">
-          {mode === "login"
-            ? "Connectez-vous à Connect"
-            : "Créez votre compte"}
-        </h2>
-
-        {/* FORMULAIRE */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-
+        <form
+          onSubmit={mode === "login" ? handleLogin : handleSignup}
+          className="space-y-4"
+        >
           {mode === "signup" && (
-            <>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Nom complet
-                </label>
-                <input
-                  className="w-full border border-slate-700 bg-[#0B0C10] text-slate-200 
-                  placeholder-slate-500 rounded-xl px-3 py-3 text-sm sm:text-base"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Ex : Kouassi Yao"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Je suis :
-                </label>
-                <select
-                  className="w-full border border-slate-700 bg-[#0B0C10] text-slate-200 
-                  rounded-xl px-3 py-3 text-sm sm:text-base"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                >
-                  <option value="customer">Client</option>
-                  <option value="provider">prestataire</option>
-                </select>
-              </div>
-            </>
+            <div>
+              <label className="text-xs font-semibold text-slate-300">
+                Nom complet
+              </label>
+              <input
+                type="text"
+                className="w-full bg-[#0B0C10] mt-1 p-2 border border-slate-700 rounded-lg text-slate-200"
+                placeholder="Ex : Ange Diallo"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </div>
           )}
 
+          {/* Email */}
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
+            <label className="text-xs font-semibold text-slate-300">
+              Email
+            </label>
             <input
               type="email"
-              className="w-full border border-slate-700 bg-[#0B0C10] text-slate-200 
-              placeholder-slate-500 rounded-xl px-3 py-3 text-sm sm:text-base"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-[#0B0C10] mt-1 p-2 border border-slate-700 rounded-lg text-slate-200"
               placeholder="vous@example.com"
+              value={email}
               required
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
+          {/* Password */}
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="text-xs font-semibold text-slate-300">
               Mot de passe
             </label>
             <input
               type="password"
-              className="w-full border border-slate-700 bg-[#0B0C10] text-slate-200 
-              placeholder-slate-500 rounded-xl px-3 py-3 text-sm sm:text-base"
+              className="w-full bg-[#0B0C10] mt-1 p-2 border border-slate-700 rounded-lg text-slate-200"
+              placeholder="••••••••"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Au moins 6 caractères"
               required
+              onChange={(e) => setPassword(e.target.value)}
             />
           </div>
 
+          {msg && (
+            <p className="text-center text-red-400 text-xs bg-red-900/20 p-2 rounded-lg">
+              {msg}
+            </p>
+          )}
+
           <button
             type="submit"
-            disabled={loading}
-            className="w-full rounded-xl bg-[#D4AF37] text-black py-3 text-sm sm:text-base 
-            font-semibold hover:bg-[#be9d31] disabled:opacity-60 active:scale-[0.98] transition"
+            className="w-full bg-[#D4AF37] text-black py-2 rounded-lg font-semibold"
           >
             {loading
-              ? "Veuillez patienter..."
+              ? "Veuillez patienter…"
               : mode === "login"
               ? "Se connecter"
-              : "S’inscrire"}
+              : "Créer un compte"}
           </button>
-
-          {message && (
-            <p className="text-sm text-center mt-2 text-slate-300">{message}</p>
-          )}
         </form>
       </div>
     </div>
