@@ -35,24 +35,35 @@ const CITIES = [
 ]
 
 const SORT_OPTIONS = [
-  { value: 'recent',     label: 'Plus recents'    },
-  { value: 'price_asc',  label: 'Prix croissant'  },
+  { value: 'recent',     label: 'Plus recents'     },
+  { value: 'price_asc',  label: 'Prix croissant'   },
   { value: 'price_desc', label: 'Prix decroissant' },
-  { value: 'rating',     label: 'Mieux notes'     },
+  { value: 'rating',     label: 'Mieux notes'      },
 ]
+
+const PAGE_SIZE = 12
 
 export default function Home() {
   var navigate = useNavigate()
+
   var [search, setSearch]               = useState('')
   var [activeCity, setActiveCity]       = useState('')
   var [activeCategory, setActiveCategory] = useState('')
   var [sortBy, setSortBy]               = useState('recent')
+  var [page, setPage]                   = useState(0)
 
-  var { services, loading } = useServices({
-    city:     activeCity    || undefined,
+  // Reset to page 0 whenever filters change
+  function updateFilter(fn) {
+    fn()
+    setPage(0)
+  }
+
+  var { services, loading, hasMore, total } = useServices({
+    city:     activeCity     || undefined,
     category: activeCategory || undefined,
-    search:   search        || undefined,
-    limit:    24,
+    search:   search         || undefined,
+    page:     page,
+    pageSize: PAGE_SIZE,
   })
 
   function getSorted(list) {
@@ -72,6 +83,7 @@ export default function Home() {
     setActiveCity('')
     setSearch('')
     setSortBy('recent')
+    setPage(0)
   }
 
   function handleSearch(e) {
@@ -85,34 +97,32 @@ export default function Home() {
       <section className={styles.hero}>
         <div className={styles.heroLabel}>Cote d'Ivoire</div>
         <h1 className={styles.heroTitle}>
-          Trouvez le bon
-          <br />professionnel
+          Trouvez le bon<br />professionnel
         </h1>
         <p className={styles.heroSub}>
           Prestataires verifies — contact direct WhatsApp, 100% gratuit pour les clients.
         </p>
 
-        {/* Search */}
         <form className={styles.searchBar} onSubmit={handleSearch}>
           <span className={styles.searchIcon}>🔍</span>
           <input
             type="text"
             placeholder="Plombier, coiffeur, mecanicien..."
             value={search}
-            onChange={function(e) { setSearch(e.target.value) }}
+            onChange={function(e) { updateFilter(function() { setSearch(e.target.value) }) }}
             className={styles.searchInput}
           />
-          {search
-            ? (
-              <button type="button" className={styles.clearBtn} onClick={function() { setSearch('') }}>
-                ✕
-              </button>
-            )
-            : null
-          }
+          {search && (
+            <button
+              type="button"
+              className={styles.clearBtn}
+              onClick={function() { updateFilter(function() { setSearch('') }) }}
+            >
+              ✕
+            </button>
+          )}
         </form>
 
-        {/* City pills — horizontal scroll */}
         <div className={styles.cityScroll}>
           {CITIES.map(function(city) {
             var val      = city === 'Toutes les villes' ? '' : city
@@ -121,7 +131,7 @@ export default function Home() {
               <button
                 key={city}
                 className={styles.cityPill + (isActive ? ' ' + styles.cityPillActive : '')}
-                onClick={function() { setActiveCity(val) }}
+                onClick={function() { updateFilter(function() { setActiveCity(val) }) }}
               >
                 {city}
               </button>
@@ -153,18 +163,17 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── CATEGORIES — horizontal scroll on mobile, grid on desktop ── */}
+      {/* ── CATEGORIES scroll (mobile) / grid (desktop) ── */}
       <div className={styles.sectionWrap}>
         <div className={styles.sectionHead}>
           <h2 className={styles.sectionTitle}>Categories</h2>
           {activeCategory && (
-            <button className={styles.seeAll} onClick={function() { setActiveCategory('') }}>
+            <button className={styles.seeAll} onClick={function() { updateFilter(function() { setActiveCategory('') }) }}>
               Tout voir
             </button>
           )}
         </div>
 
-        {/* Mobile: horizontal scroll */}
         <div className={styles.catScroll}>
           {CATEGORIES.map(function(cat) {
             var isActive = activeCategory === cat.name
@@ -172,7 +181,7 @@ export default function Home() {
               <button
                 key={cat.name}
                 className={styles.catChip + (isActive ? ' ' + styles.catChipActive : '')}
-                onClick={function() { setActiveCategory(isActive ? '' : cat.name) }}
+                onClick={function() { updateFilter(function() { setActiveCategory(isActive ? '' : cat.name) }) }}
               >
                 <div className={styles.catChipIcon}>{cat.icon}</div>
                 <div className={styles.catChipName}>{cat.name}</div>
@@ -181,7 +190,6 @@ export default function Home() {
           })}
         </div>
 
-        {/* Desktop: grid (hidden on mobile) */}
         <div className={styles.catGrid}>
           {CATEGORIES.map(function(cat) {
             var isActive = activeCategory === cat.name
@@ -189,7 +197,7 @@ export default function Home() {
               <button
                 key={cat.name}
                 className={styles.catCard + (isActive ? ' ' + styles.catActive : '')}
-                onClick={function() { setActiveCategory(isActive ? '' : cat.name) }}
+                onClick={function() { updateFilter(function() { setActiveCategory(isActive ? '' : cat.name) }) }}
               >
                 <div className={styles.catIcon}>{cat.icon}</div>
                 <div className={styles.catName}>{cat.name}</div>
@@ -211,6 +219,11 @@ export default function Home() {
                   ? '"' + search + '"'
                   : 'Annonces recentes'
             }
+            {total > 0 && !loading && (
+              <span style={{ fontSize: 13, fontWeight: 400, color: '#888', marginLeft: 8 }}>
+                ({total})
+              </span>
+            )}
           </h2>
           <div className={styles.sortRow}>
             <select
@@ -223,12 +236,14 @@ export default function Home() {
               })}
             </select>
             {hasFilter && (
-              <button className={styles.resetBtn} onClick={reset}>✕</button>
+              <button className={styles.resetBtn} onClick={reset} title="Reinitialiser les filtres">
+                ✕
+              </button>
             )}
           </div>
         </div>
 
-        {loading ? (
+        {loading && page === 0 ? (
           <div className={styles.grid}>
             {[1,2,3,4,5,6].map(function(i) {
               return (
@@ -252,11 +267,39 @@ export default function Home() {
             </button>
           </div>
         ) : (
-          <div className={styles.grid}>
-            {sorted.map(function(svc) {
-              return <ServiceCard key={svc.id} service={svc} />
-            })}
-          </div>
+          <>
+            <div className={styles.grid}>
+              {sorted.map(function(svc) {
+                return <ServiceCard key={svc.id} service={svc} />
+              })}
+            </div>
+
+            {/* Pagination */}
+            <div className={styles.paginationRow}>
+              {page > 0 && (
+                <button
+                  className="btn btn-outline"
+                  style={{ fontSize: 13 }}
+                  onClick={function() { setPage(page - 1); window.scrollTo(0, 0) }}
+                >
+                  ← Precedent
+                </button>
+              )}
+              <span className={styles.pageInfo}>
+                Page {page + 1}
+              </span>
+              {hasMore && (
+                <button
+                  className="btn btn-outline"
+                  style={{ fontSize: 13 }}
+                  disabled={loading}
+                  onClick={function() { setPage(page + 1); window.scrollTo(0, 0) }}
+                >
+                  {loading ? 'Chargement...' : 'Suivant →'}
+                </button>
+              )}
+            </div>
+          </>
         )}
       </div>
 
@@ -276,7 +319,6 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Bottom spacer so content isn't hidden behind bottom nav */}
       <div style={{ height: 80 }} />
 
       {/* ── BOTTOM NAV ── */}
@@ -286,24 +328,15 @@ export default function Home() {
           <span className={styles.bnLabel}>Accueil</span>
           <span className={styles.bnDot} />
         </button>
-        <button
-          className={styles.bnItem}
-          onClick={function() { navigate('/search') }}
-        >
+        <button className={styles.bnItem} onClick={function() { navigate('/search') }}>
           <span className={styles.bnIcon}>🔍</span>
           <span className={styles.bnLabel}>Chercher</span>
         </button>
-        <button
-          className={styles.bnItem}
-          onClick={function() { navigate('/post-service') }}
-        >
+        <button className={styles.bnItem} onClick={function() { navigate('/post-service') }}>
           <span className={styles.bnIconPlus}>+</span>
           <span className={styles.bnLabel}>Publier</span>
         </button>
-        <button
-          className={styles.bnItem}
-          onClick={function() { navigate('/profile') }}
-        >
+        <button className={styles.bnItem} onClick={function() { navigate('/profile') }}>
           <span className={styles.bnIcon}>👤</span>
           <span className={styles.bnLabel}>Profil</span>
         </button>
