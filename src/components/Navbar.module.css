@@ -1,0 +1,93 @@
+.nav {
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 16px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1D9E75;
+  text-decoration: none;
+}
+
+.logo span {
+  color: #1a1a1a;
+}
+
+.links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.userMenu {
+  position: relative;
+}
+
+.avatarBtn {
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  font-size: 13px;
+}
+
+.userMenu:hover .dropdown {
+  display: block;
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  min-width: 180px;
+  padding: 6px;
+  z-index: 200;
+}
+
+.dropItem {
+  display: block;
+  padding: 9px 14px;
+  font-size: 13px;
+  color: #333;
+  border-radius: 8px;
+  text-decoration: none;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropItem:hover {
+  background: #f5f5f5;
+  color: #1D9E75;
+}
+
+.dropDivider {
+  height: 1px;
+  background: #eee;
+  margin: 4px 0;
+}
+
+@media (max-width: 640px) {
+  .logo { font-size: 17px; }
+  .links .btn-outline { display: none; }
+}

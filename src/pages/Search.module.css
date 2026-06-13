@@ -1,0 +1,233 @@
+.header {
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  padding: 14px 16px;
+  position: sticky;
+  top: 60px;
+  z-index: 50;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #f8f9fa;
+  border: 1.5px solid #ddd;
+  border-radius: 12px;
+  padding: 6px 6px 6px 14px;
+  max-width: 640px;
+  margin: 0 auto;
+  transition: border-color 0.15s;
+}
+
+.searchBar:focus-within {
+  border-color: #1D9E75;
+}
+
+.searchIcon { font-size: 16px; margin-right: 8px; flex-shrink: 0; }
+
+.searchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  background: transparent;
+  color: #1a1a1a;
+  padding: 4px 0;
+}
+
+.searchInput::placeholder { color: #aaa; }
+
+.clearBtn {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 14px;
+}
+
+.clearBtn:hover { color: #333; }
+
+/* Layout */
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Sidebar */
+.sidebar {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 20px;
+  position: sticky;
+  top: 130px;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.sidebarTitle {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.resetBtn {
+  font-size: 12px;
+  color: #1D9E75;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.resetBtn:hover { text-decoration: underline; }
+
+.filterGroup {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.filterGroup:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.filterLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.priceBtn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: #444;
+  cursor: pointer;
+  margin-bottom: 2px;
+  transition: background 0.1s;
+}
+
+.priceBtn:hover { background: #f0f0f0; }
+
+.priceBtnActive {
+  background: #E1F5EE !important;
+  color: #085041;
+  font-weight: 500;
+}
+
+/* Results */
+.results { min-width: 0; }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.resultCount {
+  font-size: 14px;
+  color: #555;
+}
+
+.filterToggle {
+  display: none;
+  font-size: 13px;
+  padding: 6px 14px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  background: #fff;
+  cursor: pointer;
+}
+
+/* Active filter pills */
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #E1F5EE;
+  color: #085041;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pill button {
+  background: none;
+  border: none;
+  color: #085041;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0;
+  line-height: 1;
+}
+
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 0;
+    z-index: 200;
+    overflow-y: auto;
+  }
+
+  .sidebarOpen {
+    display: block !important;
+  }
+
+  .filterToggle {
+    display: block;
+  }
+
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid { grid-template-columns: 1fr; }
+}

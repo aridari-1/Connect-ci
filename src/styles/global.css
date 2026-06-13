@@ -1,0 +1,386 @@
+/* =============================================
+   ServiceCI — Global Styles
+   Mobile-first, iOS & Android optimized
+   ============================================= */
+
+/* ---- CSS Variables ---- */
+:root {
+  --green:       #1D9E75;
+  --green-light: #E1F5EE;
+  --green-dark:  #085041;
+  --amber:       #BA7517;
+  --amber-light: #FAEEDA;
+  --coral:       #D85A30;
+  --coral-light: #FAECE7;
+  --gray:        #888780;
+  --gray-light:  #F1EFE8;
+
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+
+  --font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ---- Reset ---- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Prevent horizontal scroll on mobile */
+html {
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font);
+  background: #f8f9fa;
+  color: #1a1a1a;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  /* Safe area for iPhone home indicator */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Remove tap highlight on Android */
+button, a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: var(--green);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font);
+}
+
+input, select, textarea {
+  font-family: var(--font);
+}
+
+/* Images never overflow their container */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ---- Layout ---- */
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ---- Utility classes ---- */
+.text-green   { color: var(--green); }
+.text-muted   { color: #666; }
+.text-small   { font-size: 13px; }
+.text-center  { text-align: center; }
+.font-medium  { font-weight: 500; }
+
+.flex            { display: flex; }
+.flex-col        { flex-direction: column; }
+.items-center    { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-8           { gap: 8px; }
+.gap-12          { gap: 12px; }
+.gap-16          { gap: 16px; }
+
+/* ---- Card ---- */
+.card {
+  background: #fff;
+  border-radius: var(--radius-md);
+  border: 1px solid #eee;
+  padding: 20px;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 16px 14px;
+  }
+}
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  min-height: 44px; /* Apple minimum tap target */
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  text-decoration: none;
+  white-space: nowrap;
+  font-family: var(--font);
+}
+
+.btn:hover {
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--green);
+  color: #fff;
+}
+.btn-primary:hover  { background: var(--green-dark); color: #fff; }
+.btn-primary:active { background: var(--green-dark); }
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #ddd;
+  color: #333;
+}
+.btn-outline:hover  { background: #f5f5f5; }
+.btn-outline:active { background: #ebebeb; }
+
+.btn-danger {
+  background: #e24b4a;
+  color: #fff;
+}
+.btn-danger:hover  { background: #a32d2d; }
+.btn-danger:active { background: #a32d2d; }
+
+.btn-lg {
+  padding: 13px 24px;
+  font-size: 15px;
+  min-height: 50px;
+  border-radius: var(--radius-sm);
+  width: 100%;
+}
+
+/* Disabled state */
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ---- Form elements ---- */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  min-height: 44px; /* minimum tap target */
+  border: 1px solid #ddd;
+  border-radius: var(--radius-sm);
+  /* 16px prevents iOS Safari auto-zoom on focus */
+  font-size: 16px;
+  color: #1a1a1a;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  /* Remove default iOS styling */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.12);
+}
+
+.form-input::placeholder {
+  color: #bbb;
+}
+
+.form-input.error {
+  border-color: #e24b4a;
+  box-shadow: 0 0 0 3px rgba(226, 75, 74, 0.1);
+}
+
+.form-error {
+  font-size: 12px;
+  color: #e24b4a;
+  margin-top: 5px;
+}
+
+textarea.form-input {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.6;
+}
+
+select.form-input {
+  /* Keep native arrow on select */
+  -webkit-appearance: auto;
+  appearance: auto;
+  cursor: pointer;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ---- Badge ---- */
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  line-height: 1.4;
+}
+
+.badge-green     { background: var(--green-light); color: var(--green-dark); }
+.badge-amber     { background: var(--amber-light); color: var(--amber);      }
+.badge-gray      { background: var(--gray-light);  color: #444;              }
+.badge-coral     { background: var(--coral-light); color: var(--coral);      }
+
+/* Booking / listing status badges */
+.badge-paid      { background: var(--green-light); color: var(--green-dark); }
+.badge-pending   { background: var(--amber-light); color: var(--amber);      }
+.badge-confirmed { background: #e6f1fb;            color: #185fa5;           }
+.badge-completed { background: #eaf3de;            color: #3b6d11;           }
+.badge-cancelled { background: var(--coral-light); color: var(--coral);      }
+
+/* ---- Skeleton loader ---- */
+.skeleton {
+  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes shimmer {
+  0%   { background-position:  200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: #eee;
+  }
+}
+
+/* ---- Stars ---- */
+.stars {
+  display: inline-flex;
+  gap: 2px;
+  color: var(--amber);
+  font-size: 13px;
+}
+
+/* ---- Alert ---- */
+.alert {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.alert-success {
+  background: var(--green-light);
+  color: var(--green-dark);
+  border: 1px solid #9FE1CB;
+}
+
+.alert-error {
+  background: var(--coral-light);
+  color: var(--coral);
+  border: 1px solid #F0997B;
+}
+
+.alert-info {
+  background: #e6f1fb;
+  color: #185fa5;
+  border: 1px solid #B5D4F4;
+}
+
+/* ---- Divider ---- */
+.divider {
+  height: 1px;
+  background: #eee;
+  margin: 16px 0;
+}
+
+/* ---- Avatar ---- */
+.avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.avatar-sm { width: 32px; height: 32px; font-size: 12px; }
+.avatar-md { width: 44px; height: 44px; font-size: 16px; }
+.avatar-lg { width: 64px; height: 64px; font-size: 22px; }
+
+.avatar-placeholder {
+  background: var(--green);
+  color: #fff;
+}
+
+/* ---- Responsive helpers ---- */
+@media (max-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 641px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
+
+/* ---- Scrollbar (desktop only) ---- */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+  }
+}
