@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { registerDevice, unregisterDevice } from '../lib/deviceSession'
 
 var AuthContext = createContext(null)
 
@@ -9,7 +10,6 @@ export function AuthProvider({ children }) {
   var [loading, setLoading] = useState(true)
 
   useEffect(function() {
-    // Get initial session
     supabase.auth.getSession().then(function(res) {
       var session = res.data.session
       if (session && session.user) {
@@ -21,7 +21,6 @@ export function AuthProvider({ children }) {
       }
     })
 
-    // Listen for auth state changes
     var listener = supabase.auth.onAuthStateChange(function(_event, session) {
       if (session && session.user) {
         setUser(session.user)
@@ -48,30 +47,30 @@ export function AuthProvider({ children }) {
     setLoading(false)
   }
 
-  // ── Sign up (provider pays 500 FCFA first via Paystack, then this is called) ──
+  // ── Sign up ──────────────────────────────────────────────
+  // Provider pays 500 FCFA first (via Paystack), then this is called.
   async function signUp({ email, password, fullName, phone, city, paystackRef }) {
     var res = await supabase.auth.signUp({
-      email: email,
+      email:    email,
       password: password,
       options: {
         data: {
           full_name: fullName,
-          phone: phone,
-          city: city,
+          phone:     phone,
+          city:      city,
         }
       }
     })
     if (res.error) throw res.error
 
-    // The handle_new_user trigger creates the profile row asynchronously.
-    // Wait 1.5s to make sure the row exists before updating it.
+    // Wait for the handle_new_user trigger to create the profile row
     if (res.data.user && paystackRef) {
       await new Promise(function(resolve) { setTimeout(resolve, 1500) })
       await supabase
         .from('profiles')
         .update({
           registration_ref: paystackRef,
-          is_paid: true,
+          is_paid:          true,
         })
         .eq('id', res.data.user.id)
     }
@@ -79,25 +78,37 @@ export function AuthProvider({ children }) {
     return res.data
   }
 
-  // ── Sign in ──
+  // ── Sign in ──────────────────────────────────────────────
   async function signIn({ email, password }) {
     var res = await supabase.auth.signInWithPassword({
-      email: email,
+      email:    email,
       password: password,
     })
     if (res.error) throw res.error
+
+    // Check device limit — max 2 devices per account
+    var check = await registerDevice(res.data.user.id)
+    if (!check.allowed) {
+      // Sign the user back out immediately
+      await supabase.auth.signOut()
+      throw new Error(check.message)
+    }
+
     return res.data
   }
 
-  // ── Sign out ──
+  // ── Sign out ─────────────────────────────────────────────
   async function signOut() {
+    if (user) {
+      await unregisterDevice(user.id)
+    }
     var res = await supabase.auth.signOut()
     if (res.error) throw res.error
   }
 
-  // ── Update profile ──
+  // ── Update profile ───────────────────────────────────────
   async function updateProfile(updates) {
-    if (!user) throw new Error('Not authenticated')
+    if (!user) throw new Error('Non authentifie')
     var res = await supabase
       .from('profiles')
       .update(updates)
@@ -110,12 +121,12 @@ export function AuthProvider({ children }) {
   }
 
   var value = {
-    user: user,
-    profile: profile,
-    loading: loading,
-    signUp: signUp,
-    signIn: signIn,
-    signOut: signOut,
+    user:          user,
+    profile:       profile,
+    loading:       loading,
+    signUp:        signUp,
+    signIn:        signIn,
+    signOut:       signOut,
     updateProfile: updateProfile,
   }
 
