@@ -11,7 +11,7 @@ const CATEGORIES = [
   'Construction', 'Beaute & Bien-etre', 'Cours particuliers',
   'Securite', 'Climatisation & Froid', 'Couture & Retouches',
   'Photographe & Videaste', 'Demenagement', 'Mecanicien',
-  'Menuisier', 'Cordonnier', 'Vidange fosse septique', 'Chauffeur',
+  'Menuisier', 'Cordonnier', 'Vidange fosse septique', 'Chauffeur','Wedding Planner', 'Peintre', 'Staffeur',
 ]
 
 const CITIES = [

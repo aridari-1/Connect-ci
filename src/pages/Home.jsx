@@ -27,6 +27,9 @@ const CATEGORIES = [
   { name: 'Cordonnier',                           icon: '👟' },
   { name: 'Vidange fosse septique',               icon: '🚰' },
   { name: 'Chauffeur',                            icon: '🚗' },
+  { name: 'Wedding Planner',                      icon: '💍' },
+  { name: 'Peintre',                              icon: '🖌️' },
+  { name: 'Staffeur',                             icon: '🪣' },
 ]
 
 const CITIES = [
@@ -148,7 +151,7 @@ export default function Home() {
         </div>
         <div className={styles.statDivider} />
         <div className={styles.statItem}>
-          <div className={styles.statVal}>22</div>
+          <div className={styles.statVal}>25</div>
           <div className={styles.statLbl}>Categories</div>
         </div>
         <div className={styles.statDivider} />

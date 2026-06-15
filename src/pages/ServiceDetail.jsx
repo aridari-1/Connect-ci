@@ -25,6 +25,9 @@ const CATEGORY_ICONS = {
   'Cordonnier':                           '👟',
   'Vidange fosse septique':               '🚰',
   'Chauffeur':                            '🚗',
+  'Wedding Planner':                      '💍',
+  'Peintre':                              '🖌️',
+  'Staffeur':                             '🪣',
 }
 
 export default function ServiceDetail() {

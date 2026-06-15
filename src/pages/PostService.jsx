@@ -28,6 +28,9 @@ const ALLOWED_CATEGORIES = [
   'Cordonnier',
   'Vidange fosse septique',
   'Chauffeur',
+  'Wedding Planner',
+  'Peintre',
+  'Staffeur',
 ]
 
 const CITIES = [
